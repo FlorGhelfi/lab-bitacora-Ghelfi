@@ -1,0 +1,247 @@
+---
+title: "Clase 4 - Carga de datos"
+author: "Joselina Davyt"
+lang: es
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    incremental: false
+    transition: none
+    width: 1280
+    height: 720
+    fig-align: center
+---
+
+ESTA CLASE CONSISTE EN conseguir el archivo, abrirlo bien, y revisarlo antes de confiar en los datos cargados.
+
+## Espacio de trabajo y organización de proyectos de ciencia de datos
+
+- Una buena organización de archivos es la base de cualquier proyecto profesional
+- Estructura de directorios: mantener una estructura clara e independiente del sistema:
+
+data/raw/ (datos originales e inmutables)
+
+data/processed/ (limpios)
+
+notebooks/ o src/ o scripts (código)
+
+outputs/ o resultados (reportes y modelos)
+
+## Rutas
+
+- ¿qué son las rutas?: definen en qué carpeta y archivos estoy trabajando en el proyecto de ciencia de datos
+- Preferible usar rutas relativas y no absolutas, porque las rutas absolutas impiden la reproducibilidad de los proyectos.
+- Ruta relativa: "data/raw/"
+- Ruta absoluta: "C:/Users/..."
+- Las rutas son texto (=string/=character) para los lenguajes de programación
+- Existen paquetes y funciones que interpretan la ruta como tal
+
+## Trabajar con rutas {.scrollable}
+
+## en R {.scrollable}
+
+Los siguientes códigos nos muestran como establecer una ruta absoluta NO relativa (que es con la que vamos a trabajar). El problema de la absoluta es que solo yo puedo trabajar aca, si se la paso a mi compañero no lo va a poder abrir. "setwd"
+OJO: para las rutas abs. no hay que instalar ningún paquete ya que R ya lo tiene instalado. Para la ruta relativa hay que instalar un paquete.
+
+```{r}
+#| echo: true
+getwd() # al ejecutarlo me dice en dónde está parado el entorno ahora
+# sirve para fijar la ruta del entorno o espacio de trabajo, genera rutas absolutas no relativas
+setwd("/Users/floghelfi/Documents/GitHub/Introduccion-a-la-ciencia-de-datos/clases/clase4") #con setwd le estamos diciendo que se mude a esta carpeta
+```
+
+:::
+
+## Trabajar con rutas: el enfoque moderno RUTAS RELATIVAS
+
+Instalamos un paquete para poder poner la RUTA RELATIVA y para trabajar desde la raíz del proyecto y sus subcarpetas.
+
+<img src="pythonpath.jpg" width="80%" style="display: block; margin: 0 auto;">
+
+## en R
+
+```{r}
+#| echo: true
+# 1 - instalar paquete --> SE HACE SOLO UNA VEZ
+install.packages("here")
+# 2- cargar paquete --> HACERLO SIEMPRE
+library(here)
+```
+
+
+## Carga de csv
+
+Fuente: Catalogo de datos abiertor Uy
+
+<img src="datosabiertos.png" width="80%" style="display: block; margin: 0 auto;">
+
+
+## en R
+
+```{r}
+#| echo: true
+library(here)
+library(readr)
+
+# 1. Construir la ruta relativa hacia el archivo CSV
+
+# Estructura esperada: tu_proyecto/data/raw/datos.csv
+archivo <- "cantidad_de_residuos_en_la_estacion_de_transferencia_2023.csv" #guarda cantidad_de_res... en "archivo"
+ruta_csv <- here("clases", "clase4", archivo)
+
+# 2. Verificar que el archivo exista (si no existe me va a decir No se encontro... pero si efectivamente existe no me va a decir nada y va a saltar al próximo paso)
+if (!file.exists(ruta_csv)) {
+  stop(paste("No se encontró el archivo en:", ruta_csv))
+}
+
+# 3. Cargar el archivo CSV
+df <- read_csv(ruta_csv) #Esta es LA línea. Va a la dirección, abre el CSV, lo convierte en tabla y lo guarda en df.
+
+# 4. Inspección inicial de los datos
+cat("--- Archivo cargado exitosamente desde:", basename(ruta_csv), "---\n")
+print(spec(df))  # Muestra el tipo de dato asignado a cada columna
+head(df)
+```
+HAY 41 COLUMNAS Y TE MUESTRA LAS PRIMERAS 6 FILAS
+
+## Data profiling/Inspección de datos/Reconocimiento de datos{.scrollable}
+
+Actividades esenciales:
+
+- Evaluar el tamaño del archivo y las necesidades de procesamiento
+
+```{r}
+file.size(ruta_csv) / 1024        # 364 KB en disco
+format(object.size(df), units = "MB")  # ~0.5 MB en memoria
+```
+
+- Evaluar si el caso a analizar está completo con los datos obtenidos: filas (unidades de observación) y columnas (características o variables)
+
+```{r}
+dim(df)          # 1222 filas x 41 columnas. Pero hay que hacerse otra presgunta de si todas esas filas cubren los datos que quiero obtener, para eso hago el siguiente código
+
+range(df$fecha_dia)              # ojo: es texto, el rango te va a dar alfabético --> tenemos datos de todo el mes de diciembre del 23 pero no de todo el AÑO
+length(unique(df$fecha_dia))     # 30 días distintos
+```
+
+- Confirmar el tipo de datos obtenidos
+
+```{r}
+spec(df)                       # lo que readr adivinó
+sapply(df, class)                 # otra forma de verlo
+str(df)
+```
+
+- Identificar el delimitador (separación entre columnas)
+
+```{r}
+readLines(ruta_csv, n = 2)        # mirás las dos primeras líneas crudas
+```
+
+- Revisar inconsistencias en los nombres de las variables
+
+```{r}
+names(df)
+sum(names(df) != tolower(names(df)))          # 0 mayúsculas
+sum(grepl(" ", names(df)))                    # 0 espacios
+sum(grepl("[^ -~]", names(df)))               # 0 acentos/caracteres raros
+```
+
+- Esta etapa debe culminar con un código definitivo de carga de datos (tipo de conexión, tipo de archivos, tipos de datos, completitud)
+En los pasos anteriores R fue "adivinando" qué eran mis datos, ahora es el momento de que no adivine más y decirle yo
+
+
+```{r}
+FMT <- "%d/%m/%y %H:%M" #guardo la plantilla de cómo tiene que escribir la fecha para no repetirla tantas veces
+
+#Ahora le voy a hacer como una especie de diccionario para explicarle qué es cada columna
+tipos <- cols(
+  .default = col_character(),
+
+  pesada      = col_integer(),
+  peso_neto   = col_double(),
+  peso_bruto  = col_double(),
+  tara        = col_double(),
+  nro_permiso = col_double(),
+
+  fecha_dia   = col_datetime(format = FMT),
+  fecha       = col_datetime(format = FMT),
+  viaje_fecha = col_datetime(format = FMT),
+  fecha_tara  = col_datetime(format = FMT),
+  fmod        = col_datetime(format = FMT),
+
+  trayecto = col_skip(), trayecto_desc = col_skip(),
+  tipo_recorrido = col_skip(), tipo_recorrido_desc = col_skip(),
+  nomenclatura_circuito = col_skip(), municipio = col_skip(),
+  lugar_salida = col_skip(), lugar_salida_desc = col_skip(),
+  permiso = col_skip(), peso_autorizado = col_skip()
+)
+
+df <- read_csv(ruta_csv, col_types = tipos) #para que corra de nuevo los datos pero con este "diccionario"
+```
+
+
+## Unidad de observación{.scrollable}
+
+- La unidad de observación refiere al objeto de estudio
+- Permite identidicar las columnas IDs por las cuales se podrían unir datos
+- Ejemplos video juegos:
+  - Nivel Acción. **Fila:** Evento atómico (*Acción dentro del juego*), ejemplo event_id.
+  - Nivel Partida. **Fila:** Partida (*Match*) o Jugador-Partida (*Player-Match*), ejemplo campos: `match_id`, `player_id`, `kills`, `deaths`, `win_bool`.
+  - Nivel jugador. **Fila:** Un Jugador único (*Perfil Agregado*), por ejemplo calcular predicción de abandono,retención a 7/30 días y gasto acumulado. **Campo:** `player_id`
+  - Nivel título. **Fila:** Un videojuego o título (*App Level*). **Objetivo:** Estudio de catálogo, estrategia de precios y competencia por género. **Campos:** `app_id`, `title`, `genre`, `price`, `peak_concurrent_users`.
+
+## Problemas de identificación de datos e integración{.scrollable}
+
+- Verificar consistencia de formato de IDs, ¿por qué? porque son las variables mediante las cuales se unen distintas tablas de datos.
+- Verificar duplicados
+- Distintas fechas de generación de registros, por ejemplo: la solicitud de un tratamiento se realiza en diciembre de 2025 y se realiza en 2026
+- Duplicados: más de un registro por IDs, ¿es necesario o se quiere mantener
+- Solución: comenzar con una lista de los NO SÉ.
+
+```{r} 
+# 1. El identificador (el ejercicio de la slide)
+length(unique(df$matricula_letra))   # 12  -> no es el ID
+length(unique(df$pesada))            # 1222 -> este SÍ es el ID
+nrow(df)                             # 1222, coincide
+
+# 2. Valores faltantes
+colSums(is.na(df))
+
+# 3. Duplicados
+sum(duplicated(df))                  # 0
+```
+
+
+## Data profiling: identificador{.scrollable}
+
+
+::: panel-tabset
+```{r}
+#| echo: true
+# dimensiones y estructura de los datos
+str(df) # 1222 filas y 41 columnas
+# filas únicas: detectando la columna que contiene el ID
+length(unique(df$pesada)) #¿cuál es la columna identificador? PESADA
+```
+
+
+LA VARIABLE ID ES "PESADA"
+
+
+## Data profiling 2: valores faltantes{.scrollable}
+
+```{r}
+#| echo: true
+colSums(is.na(df)) # Conteo de NA por columna
+sapply(df, function(x) if (is.character(x)) sum(x == "" | x == "N/A", na.rm = TRUE) else 0)
+```
+
+## Data profiling 3: duplicados{.scrollable}
+
+```{r}
+#| echo: true
+sum(duplicated(df)) # Cantidad de filas exactamente iguales
+```
+

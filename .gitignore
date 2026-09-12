@@ -1,0 +1,16 @@
+# RStudio
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# macOS
+.DS_Store
+
+# Datos: se versiona el código que los obtiene, no los datos
+*.csv
+*.xlsx
+
+# Salidas generadas
+*_files/
+*.html

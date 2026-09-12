@@ -378,4 +378,60 @@ ozono_limpio %>%
     .groups = "drop"
   )
 
-## 10.2 ¿Cuándo faltan? Propor
+## 10.2 ¿Cuándo faltan? Proporción de NA por día
+na_dia <- ozono_limpio %>%
+  mutate(dia = as_date(fecha)) %>%
+  group_by(estacion, dia) %>%
+  summarise(prop_na = mean(is.na(o3)), .groups = "drop")
+
+ggplot(na_dia, aes(x = dia, y = prop_na)) +
+  geom_col(fill = "grey40") +
+  facet_wrap(~ estacion, ncol = 1) +
+  theme_minimal() +
+  labs(title = "Proporción de minutos sin dato, por día y estación",
+       x = NULL, y = "Proporción de NA")
+
+## 10.3 Rachas de NA consecutivos (rle = run length encoding)
+rachas <- ozono_limpio %>%
+  arrange(estacion, fecha) %>%
+  group_by(estacion) %>%
+  reframe({
+    r <- rle(is.na(o3))
+    tibble(faltante = r$values, largo = r$lengths)
+  })
+
+rachas %>%
+  filter(faltante) %>%
+  mutate(tipo = cut(largo, breaks = c(0, 1, 10, 60, 1440, Inf),
+                    labels = c("1 min", "2-10 min", "11 min-1 h",
+                               "1 h-1 día", "> 1 día"))) %>%
+  count(estacion, tipo, name = "n_rachas")
+
+## 10.4 Faltantes implícitos: minutos que no están en el archivo
+ozono_limpio %>%
+  group_by(estacion) %>%
+  summarise(
+    primero   = min(fecha),
+    ultimo    = max(fecha),
+    esperados = as.numeric(difftime(max(fecha), min(fecha), units = "mins")) + 1,
+    presentes = n_distinct(fecha),
+    .groups = "drop"
+  ) %>%
+  mutate(implicitos = esperados - presentes,
+         prop_implicitos = implicitos / esperados)
+
+## 10.5 Cobertura contra la grilla del período pedido
+INICIO <- as.POSIXct("2024-01-01 00:00:00", tz = tz(ozono_limpio$fecha))
+FIN    <- as.POSIXct("2024-04-30 23:59:00", tz = tz(ozono_limpio$fecha))
+ESPERADOS <- as.numeric(difftime(FIN, INICIO, units = "mins")) + 1
+
+cobertura <- ozono_limpio %>%
+  group_by(estacion) %>%
+  summarise(presentes = n_distinct(fecha),
+            validos   = sum(!is.na(o3)),
+            .groups = "drop") %>%
+  mutate(esperados         = ESPERADOS,
+         sin_fila          = esperados - presentes,
+         fila_sin_medicion = presentes - validos,
+         cobertura         = 100 * round(validos / esperados, 3))
+cobertura

@@ -24,4 +24,4 @@ Este repo es mi bitácora personal del curso de Introducción a la Ciencia de Da
 └── Set up/          instalaciones y configuración del entorno
 ```
 
-Los datos no se versionan: se versiona el código que los obtiene. Los CSV se bajan del [Catálogo de Datos Abiertos UY](https://catalogodatos.gub.uy).
+Los datos no se versiona

@@ -400,4 +400,11 @@ cobertura = (
     .assign(
         esperados=ESPERADOS,
         sin_fila=lambda d: d["esperados"] - d["presentes"],
-        f
+        fila_sin_medicion=lambda d: d["presentes"] - d["validos"],
+        cobertura=lambda d: 100 * (d["validos"] / d["esperados"]).round(3),
+    )
+    .reset_index()
+)
+print(cobertura)
+
+# %%

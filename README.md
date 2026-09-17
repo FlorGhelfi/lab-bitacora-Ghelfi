@@ -17,6 +17,8 @@ Este repo es mi bitácora personal del curso de Introducción a la Ciencia de Da
 | 06 | Diseño de encuestas | [apuntes](Clases/clase06-diseno-encuestas/apuntes.md) | — |
 | 07 | Carga y transformación | [apuntes](Clases/clase07-carga-y-transformacion/Apuntes%20clase%207.md) | `carga_y_transformacion.R`, `mapa.R`, `estadistica_basica.R` |
 | 08 | Visualización y Python | [apuntes](Clases/clase08-visualizacion/apuntes8.md) | `carga_transformacion_visualizacion.py` |
+| 09 | Visualización básica | [apuntes](Clases/clase09-visualizacion/apuntes.md) | `visualizacion_basica_R.R` |
+
 ## Estructura
 
 ```
@@ -24,4 +26,4 @@ Este repo es mi bitácora personal del curso de Introducción a la Ciencia de Da
 └── Set up/          instalaciones y configuración del entorno
 ```
 
-Los datos no se versiona
+Los datos no se versionan: se versiona el código que los obtiene. Los CSV se bajan del [Catálogo de Datos Abiertos UY](https://catalogodatos.gub.uy).

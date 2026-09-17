@@ -16,7 +16,7 @@ Este repo es mi bitácora personal del curso de Introducción a la Ciencia de Da
 | 05 | Flujo de datos, seudocódigo y carga 2 | [apuntes](Clases/clase05-flujo-y-seudocodigo/apuntes.md) | `seudocodigo_temperaturas.R`, `clase5_cargadatos2.R` |
 | 06 | Diseño de encuestas | [apuntes](Clases/clase06-diseno-encuestas/apuntes.md) | — |
 | 07 | Carga y transformación | [apuntes](Clases/clase07-carga-y-transformacion/Apuntes%20clase%207.md) | `carga_y_transformacion.R`, `mapa.R`, `estadistica_basica.R` |
-
+| 08 | Visualización y Python | [apuntes](Clases/clase08-visualizacion/apuntes8.md) | `carga_transformacion_visualizacion.py` |
 ## Estructura
 
 ```

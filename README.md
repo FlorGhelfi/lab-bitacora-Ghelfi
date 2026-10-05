@@ -18,6 +18,7 @@ Este repo es mi bitácora personal del curso de Introducción a la Ciencia de Da
 | 07 | Carga y transformación | [apuntes](Clases/clase07-carga-y-transformacion/Apuntes%20clase%207.md) | `carga_y_transformacion.R`, `mapa.R`, `estadistica_basica.R` |
 | 08 | Visualización y Python | [apuntes](Clases/clase08-visualizacion/apuntes8.md) | `carga_transformacion_visualizacion.py` |
 | 09 | Visualización básica | [apuntes](Clases/clase09-visualizacion/apuntes.md) | `visualizacion_basica_R.R` |
+| 10 | Tránsito y calidad del aire | [apuntes](Clases/clase10-transito-aire/apuntes.md) | `clase_transito_aire.R` |
 
 ## Estructura
 

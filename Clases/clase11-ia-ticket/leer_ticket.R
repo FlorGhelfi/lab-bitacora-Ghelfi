@@ -88,4 +88,4 @@ writeLines(trimws(texto), here::here(paste0(ruta, "ticket_gemini.csv")))
 
 tabla <- read.csv(here::here(paste0(ruta, "ticket_gemini.csv")))
 print(tabla)
-cat("Suma de los ítems:", sum(tabla$monto, na.rm = TRUE), "\n")   # co
+cat("Suma de los ítems:", sum(tabla$monto, na.rm = TRUE), "\n")   # comparar con el TOTAL impreso
